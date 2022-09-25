@@ -41,7 +41,7 @@ app.get("/api/trees/:id", (req, res) => {
   const tree = trees.find((t) => t.id === parseInt(req.params.id));
 
   if (!tree) {
-    res.status(StatusCodes.NOT_FOUND).send(ReasonPhrases.NOT_FOUND);
+    return res.status(StatusCodes.NOT_FOUND).send(ReasonPhrases.NOT_FOUND);
   }
 
   res.send(tree);
@@ -51,13 +51,46 @@ app.post("/api/trees", (req, res) => {
   const validation = treeSchema.validate(req.body);
 
   if (validation.error) {
-    res.status(StatusCodes.BAD_REQUEST).send(validation.error.details);
+    return res.status(StatusCodes.BAD_REQUEST).send(validation.error.details);
   }
 
   const tree = new Tree(trees.length + 1, req.body.name, req.body.type);
 
   trees.push(tree);
   res.send(tree);
+});
+
+app.put("/api/trees/:id", (req, res) => {
+  const tree = trees.find((t) => t.id === parseInt(req.params.id));
+
+  if (!tree) {
+    return res.status(StatusCodes.NOT_FOUND).send(ReasonPhrases.NOT_FOUND);
+  }
+
+  const { error } = treeSchema.validate(req.body);
+
+  if (error) {
+    return res.status(StatusCodes.BAD_REQUEST).send(error.details);
+  }
+
+  tree.name = req.body.name;
+  tree.type = req.body.type;
+
+  res.send(tree);
+});
+
+app.delete("/api/trees/:id", (req, res) => {
+  const tree = trees.find((t) => t.id === parseInt(req.params.id));
+
+  if (!tree) {
+    return res.status(StatusCodes.NOT_FOUND).send(ReasonPhrases.NOT_FOUND);
+  }
+
+  const updatedTrees = trees.filter(
+    (tree) => tree.id !== parseInt(req.params.id)
+  );
+
+  res.send(updatedTrees);
 });
 
 app.listen(port, () => {
